@@ -2,7 +2,7 @@ tmax = 0.5; % maximal time for ode solution
 x0=[0.5*pi;0];
 
 % solve the ode for CPG and plot the states
-[t0,y0]=ode45(@NLS,[0,tmax],x0);
+[t0,y0]=ode45(@CPG,[0,tmax],x0);
 figure(1)
 plot(t0,y0,'LineWidth',2)
 legend('$\theta(t)$','$\dot \theta(t)$','Interpreter','latex')
