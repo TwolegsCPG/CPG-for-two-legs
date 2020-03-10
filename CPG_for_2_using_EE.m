@@ -1,12 +1,13 @@
 % CPG for two odrives using explicit euler method
-clc;clear;
-tmax = 2; % maximal time for ode solution
+clc;clear;clf;
+tmax = 0.5; % maximal time for ode solution
 h = 0.01;
-x0 = [0;pi];%initial condition
-w = 10;%speed
-A_L = 20;
-A_R = 20; 
+x0 = [0;pi/2];%initial condition
+w = 20;%speed
+A_L = 20;%left coupling factor
+A_R = 20; %right coupling factor
 
+%define parameters of the trajectory
 x_on = 0.11;
 y_on = 0.2;
 x_off = -0.11;
@@ -28,35 +29,40 @@ psi_sw = [psi_left,psi_right+pi*2];
 delta_sw = [pi*2-(psi_left-psi_right),psi_left-psi_right];
 z_sw = polyfit(psi_sw, delta_sw, 1);
 
+%solve the ODE using EE(same as the code in python)
 x = x0;
 A = zeros(2,tmax/h);
 a = 1;
 for i = 0:h:tmax
-    
-A(1,a) = x(1);
-A(2,a) = x(2);
 
-x1 = rem(x(1),pi*2);
-x2 = rem(x(2),pi*2);
-if (psi_right<=x1) && (x1<=psi_left)
-        delta_psi = polyval(z_st,x1);
-elseif x1>psi_left
-        delta_psi = polyval(z_sw,x1);
-else
-        delta_psi =  polyval(z_sw,x1+2*pi);
-end
+    %set the left leg not to move for showing the response of the right leg
+    x1 = 0;
+    % x1 = rem(x(1),pi*2);
+    x2 = rem(x(2),pi*2);
 
-if x1>x2
-    x2 = x2+pi*2;
-end
+    if (psi_right<=x1) && (x1<=psi_left)
+            delta_psi = polyval(z_st,x1);
+    elseif x1>psi_left
+            delta_psi = polyval(z_sw,x1);
+    else
+            delta_psi =  polyval(z_sw,x1+2*pi);
+    end
 
-x(1) = x(1) + h*(w+A_L*sin((x2-x1)-delta_psi));
-x(2) = x(2) + h*(w+A_R*sin(delta_psi-(x2-x1))); 
+    if x1>x2
+        x2 = x2+pi*2;
+    end
 
-a = a+1;
+    x(1) = x(1) + h*(w+A_L*sin((x2-x1)-delta_psi));
+    x(2) = x(2) + h*(w+A_R*sin(delta_psi-(x2-x1))); 
+
+    A(1,a) = x1;
+    A(2,a) = x2;
+
+    a = a+1;
 end
 A(3,:) = linspace(0,tmax,tmax/h+1);
-% solve the ode for CPG and plot the states
+
+%plot the solutions
 figure(1)
 subplot(2,1,1)
 plot(A(3,:) ,A(1,:) ,'LineWidth',2)
